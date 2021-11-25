@@ -56,7 +56,7 @@ For instance, using modest number of raster layers such as population density, u
 </br>
 
 ## **1.2. Datasets & setting up the work directory** 
-Before you begin do make sure to download all data from [**HERE**](https://moodle.ucl.ac.uk). If you are working from 
+Before you begin do make sure to download all data from [**HERE**](https://github.com/UCLPG-MSC-SGDS/GEOG0114-PSA-WK8/raw/main/Datasets%20for%20Kenya.zip). If you are working from 
 a UCL workstation, do create a folder called "**Week 8**" within your "**GEOG0114**" folder stored in the N-drive.
 
 Extract all data from the zip folder and stored into "**Week 8**" folder. Open a new R script and set the work directory 
