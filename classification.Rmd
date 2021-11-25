@@ -1,0 +1,4 @@
+---
+title: "Introduction to Suitability Mapping"
+date: "Week 8: 29/11/2021"
+---

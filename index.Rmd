@@ -1,0 +1,165 @@
+---
+title: "Introduction to Suitability Mapping"
+date: "Week 8: 29/11/2021"
+---
+
+<style type: "text/css">
+h1.title {
+	font-size: 20px;
+}
+
+h4.date {
+	font-size: 18px;
+}
+
+h1 {
+	font-size: 18px;
+}
+
+h2 {
+	font-size: 18px;
+}
+
+body{/* Normal */
+	font-size: 13px;
+	text-align: justify;
+}
+
+p.comment {
+background-color: #DBDBDB;
+padding: 10px;
+border: 1px solid black;
+border-radius: 5px;
+}
+
+code.r{
+  font-size: 10px;
+}
+pre {
+  font-size: 12px
+}
+</style>
+
+<hr style="border:2px solid gray"> </hr>
+
+```{r setup, include = FALSE}
+knitr::opts_knit$set(root.dir = "/Users/anwarmusah/Documents/GITHUB/UCLPG-MSC-SGDS/Dataset/T1_WK8")
+knitr::opts_chunk$set(cache = TRUE)
+```
+
+## **1.1. Let's begin**
+**Background**: Risk models derived from environmental, sociodemographic and topological factors are becoming increasingly available for open research. Such models have broadly shown to be useful in delineating geographical areas of risk or suitability for a certain outcomes. So far, we have covered different ways for modelling the spatial distribution of outcomes and estimating its occurrence or risk, we have explored this through areal-based, geostatistical and nonparametric methods. Today, we are going to explore this from a different lens using a knowledge-driven approach. 
+
+**OBJECTIVES**: To provide an introductory overview to the applicability of knowledge-driven methods, in particular, we are going to learn the **Multi-Criteria Decision Approach** (MCDA) which is a method that use decision rules from existing knowledge to identify areas potential suitability for an outcome. It is especially useful in data-sparse situations, or when for the first time exploring the potential geographical limits of certain outcome. 
+For instance, using modest number of raster layers such as population density, urbanisation, approximating to street segments, house prices and deprivation; it is possible to use such information in determining regions for which crime events such as burglaries are likely to occur, or suitable in that matter. This approach has been widely used in a number of disciplines over the last decades, and has gained prominence in public health related fields such as vector-borne disease prevention, and disaster sciences such as landslides. We will learn how to apply these methods to the two context.  
+
+</br>
+
+## **1.2. Datasets & setting up the work directory** 
+Before you begin do make sure to download all data from [**HERE**](https://moodle.ucl.ac.uk). If you are working from 
+a UCL workstation, do create a folder called "**Week 8**" within your "**GEOG0114**" folder stored in the N-drive.
+
+Extract all data from the zip folder and stored into "**Week 8**" folder. Open a new R script and set the work directory 
+to **Week 8's** folder (i.e., **Home (N:) > GEOG0114 > Week 8**)
+
+```{r, eval = FALSE}
+# Set working directory to Week 6 folder
+setwd("N:/GEOG0114/Week 8")
+```
+
+</br>
+
+## **1.3. Loading and installing packages**
+
+We will need to load the following packages:
+
+- `sf`: Simple Features
+- `tmap`: Thematic Mapping
+- `raster`: Raster/gridded data analysis and manipulation
+- `sp`: Package for providing classes for spatial data (points, lines, polygons and grids)
+
+```{r, message = FALSE, warning= FALSE}
+# Load packages using library() function
+library("sf")
+library("sp")
+library("tmap")
+library("raster")
+```
+
+```{r, include = FALSE}
+library("gstat")
+library("geoR")
+```
+
+The above packages `sf`, `tmap`, `raster` & `sp`  should have been installed in the previous session(s). We will need to 
+install the following package:
+
+- `gstat`: provides functions for univariable and multivariable geostatistical analysis.
+- `geoR`: provides additional functions for geostatistical and variogram analysis.
+
+
+```{r, eval = FALSE}
+# Install the packages: gstat using the install.package()
+install.packages("gstat")
+install.packages("geoR")
+
+# Load the packages with library()
+library("gstat")
+library("geoR")
+```
+
+</br>
+
+## **1.4. Loading datasets**
+
+Let us first import the quantitative data i.e., `US 2019 SO2 Emissions data.csv` into R/RStudio.
+
+```{r, message = FALSE, warning = FALSE}
+# Use read.csv() to import 
+datafile <- read.csv(file = "US 2019 SO2 Emissions data.csv", header = TRUE, sep = ",")
+```
+
+- Raster: US Car Usage (5000m resolution) named `US Prevalence of Car Usage 5km.tif`
+- Raster: US Urbanisation Index (5000m resolution) named `US Urbanisation Index 5km.tif`
+- Raster: US Socioeconomic Deprivation (5000m resolution) named `US Socioeconomic Deprivation 5km.tif`
+- Raster: US Car Usage (5000m resolution) named `US Prevalence of Car Usage 5km.tif`
+- Raster: US Urbanisation Index (5000m resolution) named `US Urbanisation Index 5km.tif`
+- Raster: US Socioeconomic Deprivation (5000m resolution) named `US Socioeconomic Deprivation 5km.tif`
+
+```{r}
+# Use read_sf() function to load shape file 
+US_Nation_Border_shp <- st_read("US Nation Border.shp")
+US_State_Border_shp <- st_read("US State Borders.shp")
+```
+
+</br>
+
+## **1.5. Data preparation**
+There are a couple of things we need to do before proceeding with the analysis: 
+
+1. The `datafile` is a data frame object in RStudio's memory, and not a spatial object. We need to coerce into a spatial `sf` object
+2. The shapefiles for `US Nation Border.shp` & `US State Borders.shp` are in a different CRS called **Spherical Mercator 3857**
+which measures distance in meters and not in decimal degrees. We need to transform the `longitude` and `latitude` of our stations
+which are in decimal degrees to the CRS of **Spherical Mercator 3857**
+
+```{r}
+# Coerce the spreadsheet into a sf object
+# First tell R that it’s coordinates are currently in decimal degrees (i.e., WGS84 'crs = 4326') before the transformation
+datafile_sf <- st_as_sf(datafile, coords = c("Longitude", "Latitude"), crs = 4326)
+# Now apply the transformation from WGS84 to Mercator i.e., = 3857
+datafile_sf_prj <- st_transform(datafile_sf, 3857)
+# Inspect the details
+st_crs(datafile_sf_prj)
+```
+
+The code chunk below generates an empty map with the `tmap` functions. It shows just the border of USA and the point
+locations for the air quality monitoring stations superimposed.
+
+```{r, eval=FALSE}
+tm_shape(US_Nation_Border_shp) + tm_polygons(alpha = 0, border.col = "black") + 
+	tm_shape(datafile_sf_prj) + tm_dots() + 
+	tm_scale_bar(position = c("left","bottom")) +
+	tm_compass(position = c("right", "bottom"))
+```
+
+<center>

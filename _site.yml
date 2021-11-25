@@ -1,0 +1,14 @@
+name: "my-website"
+navbar:
+  title: "GEOG0114: Principles of Spatial Analysis"
+  left:
+    - text: "1. Getting Started"
+      href: index.html
+    - text: "2. Suitability by Classification"
+      href: classification.html
+    - text: "3. Analytical Hierarchy Process (AHP)"
+      href: ahp.html
+    - text: "4. Predicting Landslides"
+      href: landslide.html
+    - text: "5. Recommended Readings"
+      href: recommendations.html

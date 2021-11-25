@@ -1,0 +1,43 @@
+---
+title: "Introduction to Suitability Mapping"
+date: "Week 8: 29/11/2021"
+---
+
+<style type: "text/css">
+h1.title {
+	font-size: 20px;
+}
+
+h4.date {
+	font-size: 18px;
+}
+
+h1 {
+	font-size: 18px;
+}
+
+h2 {
+	font-size: 18px;
+}
+
+body{/* Normal */
+	font-size: 13px;
+	text-align: justify;
+}
+
+p.comment {
+background-color: #DBDBDB;
+padding: 10px;
+border: 1px solid black;
+border-radius: 5px;
+}
+
+code.r{
+  font-size: 10px;
+}
+pre {
+  font-size: 12px
+}
+</style>
+
+<hr style="border:2px solid gray"> </hr>
