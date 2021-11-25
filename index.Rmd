@@ -36,7 +36,11 @@ code.r{
   font-size: 10px;
 }
 pre {
-  font-size: 12px
+  white-space: pre-wrap;
+  font-size: 12px;
+  background: #F5F5F5;
+  max-width: 100%;
+  overflow-x: auto; 
 }
 </style>
 
@@ -56,18 +60,19 @@ For instance, using modest number of raster layers such as population density, u
 </br>
 
 ## **1.2. Datasets & setting up the work directory** 
-Before you begin do make sure to download all data from [**HERE**](https://github.com/UCLPG-MSC-SGDS/GEOG0114-PSA-WK8/raw/main/Datasets%20for%20Kenya.zip). If you are working from 
-a UCL workstation, do create a folder called "**Week 8**" within your "**GEOG0114**" folder stored in the N-drive.
-
-Extract all data from the zip folder and stored into "**Week 8**" folder. Open a new R script and set the work directory 
-to **Week 8's** folder (i.e., **Home (N:) > GEOG0114 > Week 8**)
+Before you begin do make sure to download all data from [**HERE**](https://github.com/UCLPG-MSC-SGDS/GEOG0114-PSA-WK8/blob/5d016ec0ea87f875eed0a3e0af5d0475b49b16c6/Datasets%20for%20Kenya.zip?raw=true). If you are working from a UCL workstation, do create a folder called "**Week 8**" within your "**GEOG0114**" folder stored in the N-drive. Extract all data from the zip folder and stored into "**Week 8**" folder. Open a new R script and set the work directory to **Week 8's** folder (i.e., **Home (N:) > GEOG0114 > Week 8**)
 
 ```{r, eval = FALSE}
 # Set working directory to Week 6 folder
 setwd("N:/GEOG0114/Week 8")
 ```
 
+
+https://github.com/downloads/UCLPG-MSC-SGDS/GEOG0114-PSA-WK8/
+
 </br>
+
+https://github.com/UCLPG-MSC-SGDS/GEOG0114-PSA-WK8/blob/5d016ec0ea87f875eed0a3e0af5d0475b49b16c6/Datasets%20for%20Kenya.zip?raw=true
 
 ## **1.3. Loading and installing packages**
 
