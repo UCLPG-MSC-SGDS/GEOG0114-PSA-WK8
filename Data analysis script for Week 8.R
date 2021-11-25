@@ -8,28 +8,32 @@ library("tmap")
 library("sp")
 library("sf")
 library("classInt")
+library("spatialEco")
 
-setwd("/Users/anwarmusah/Documents/GITHUB/GEOG0114-PSA-WK8/datasets")
+setwd("/Users/anwarmusah/Documents/GITHUB/UCLPG-MSC-SGDS/Dataset/T1_WK8")
 
 # load the shapefiles
-kenya_border <- st_read("Shapefiles/Kenya_Border_3857.shp")
-kenya_states <- st_read("Shapefiles/Kenya_States_3857.shp")
+kenya_border <- st_read("Kenya_Border_3857.shp")
+kenya_states <- st_read("Kenya_States_3857.shp")
 
 # load the raster data
-temp <- raster("Rasters/Kenya Mean Teperature.tif")
-nvdi <- raster("Rasters/Kenya NDVI.tif")
-prec <- raster("Rasters/Kenya Precipitation.tif")
-popl <- raster("Rasters/Kenya Population Density.tif")
-elev <- raster("Rasters/Kenya Elevation.tif")
-arid <- raster("Rasters/Kenya Aridity Index.tif")
+temp <- raster("Kenya Mean Teperature.tif")
+nvdi <- raster("Kenya NDVI.tif")
+prec <- raster("Kenya Precipitation.tif")
+popl <- raster("Kenya Population Density.tif")
+elev <- raster("Kenya Elevation.tif")
+arid <- raster("Kenya Aridity Index.tif")
 # ignore these stupid warning message to my understanding its has something to do with an upgrade related proj4 to proj6
 # cannot for the life of me figure out a way to mute these fucking warning message
 
 # standardize the extents using the border shape file
-RasterTemplate <- raster(nrow = dim(temp)[1], ncol = dim(temp)[2], crs=crs(temp), extent(temp))
+#RasterTemplate <- raster(nrow = dim(temp)[1], ncol = dim(temp)[2], crs=crs(temp), extent(temp))
+#popl_1km <- resample(popl, RasterTemplate, method = "bilinear")
+#arid_1km <- resample(arid, RasterTemplate, method = "bilinear")
+#writeRaster(popl_1km, "Kenya Population Density.tif", overwrite=T)
+#writeRaster(arid_1km, "Kenya Aridity Index.tif", overwrite=T)
 
-popl_1km <- resample(popl, RasterTemplate, method = "bilinear")
-arid_1km <- resample(arid, RasterTemplate, method = "bilinear")
+
 
 # temp
 temp_cl <- c(temp@data@min-1, 15, 0, 15, temp@data@max+1, 1)
@@ -104,3 +108,6 @@ tm_layout(frame = FALSE, legend.outside = TRUE)
 
 # quantile(raster, )
 # palette= "-RdYlBu"
+
+install.packages("spatialEco")
+library("spatialEco")

@@ -35,13 +35,11 @@ border-radius: 5px;
 code.r{
   font-size: 10px;
 }
+
 pre {
-  white-space: pre-wrap;
   font-size: 12px;
-  background: #F5F5F5;
-  max-width: 100%;
-  overflow-x: auto; 
 }
+
 </style>
 
 <hr style="border:2px solid gray"> </hr>
@@ -54,12 +52,12 @@ knitr::opts_chunk$set(cache = TRUE)
 ## **1.1. Let's begin**
 **Background**: Risk models derived from environmental, sociodemographic and topological factors are becoming increasingly available for open research. Such models have broadly shown to be useful in delineating geographical areas of risk or suitability for a certain outcomes. So far, we have covered different ways for modelling the spatial distribution of outcomes and estimating its occurrence or risk, we have explored this through areal-based, geostatistical and nonparametric methods. Today, we are going to explore this from a different lens using a knowledge-driven approach. 
 
-**OBJECTIVES**: To provide an introductory overview to the applicability of knowledge-driven methods, in particular, we are going to learn the **Multi-Criteria Decision Approach** (MCDA) which is a method that use decision rules from existing knowledge to identify areas potential suitability for an outcome. It is especially useful in data-sparse situations, or when for the first time exploring the potential geographical limits of certain outcome. 
-For instance, using modest number of raster layers such as population density, urbanisation, approximating to street segments, house prices and deprivation; it is possible to use such information in determining regions for which crime events such as burglaries are likely to occur, or suitable in that matter. This approach has been widely used in a number of disciplines over the last decades, and has gained prominence in public health related fields such as vector-borne disease prevention, and disaster sciences such as landslides. We will learn how to apply these methods to the two context.  
+**OBJECTIVES**: To provide an introductory overview to the applicability of knowledge-driven methods, in particular, we are going to learn the **Multi-Criteria Decision Approach (MCDA)** which is a method that use decision rules from existing knowledge to identify areas potential suitability for an outcome. It is especially useful in data-sparse situations, or when for the first time exploring the potential geographical limits of certain outcome. 
+For instance, using modest number of raster layers such as population density, urbanisation, approximating to street segments, house prices and deprivation; it is possible to combine such information so to determine regions for which crime events such as burglaries are likely to occur, or suitable in that matter. This approach has been widely used in a number of disciplines over the last decades, and has gained prominence in public health related fields such as vector-borne disease prevention, and disaster sciences such as landslides. We will learn how to apply these methods to the two context.  
 
 </br>
 
-## **1.2. Datasets & setting up the work directory** 
+## **1.2. Data sets & setting up the work directory** 
 Before you begin do make sure to download all data from [**HERE**](https://github.com/UCLPG-MSC-SGDS/GEOG0114-PSA-WK8/blob/5d016ec0ea87f875eed0a3e0af5d0475b49b16c6/Datasets%20for%20Kenya.zip?raw=true). If you are working from a UCL workstation, do create a folder called "**Week 8**" within your "**GEOG0114**" folder stored in the N-drive. Extract all data from the zip folder and stored into "**Week 8**" folder. Open a new R script and set the work directory to **Week 8's** folder (i.e., **Home (N:) > GEOG0114 > Week 8**)
 
 ```{r, eval = FALSE}
@@ -67,14 +65,68 @@ Before you begin do make sure to download all data from [**HERE**](https://githu
 setwd("N:/GEOG0114/Week 8")
 ```
 
-
-https://github.com/downloads/UCLPG-MSC-SGDS/GEOG0114-PSA-WK8/
-
 </br>
 
-https://github.com/UCLPG-MSC-SGDS/GEOG0114-PSA-WK8/blob/5d016ec0ea87f875eed0a3e0af5d0475b49b16c6/Datasets%20for%20Kenya.zip?raw=true
-
 ## **1.3. Loading and installing packages**
+We will need to load the following packages:
 
+- `sf`: Simple Features
+- `tmap`: Thematic Mapping
+- `raster`: Raster/gridded data analysis and manipulation
+- `sp`: Package for providing classes for spatial data (points, lines, polygons and grids)
+
+```{r, eval = FALSE}
+# Load packages using library() function
+library("sf")
+library("tmap")
+library("raster")
+library("sp")
+```
+
+The above packages `sf`, `tmap`, `raster` & `sp`  should have been installed in the previous session(s). We will need to install a new package:
+
+- `spatialEco` - Spatial Analysis and Modelling Utilities package, which provides the user further functions for manipulating raster data. 
+
+```{r, eval = FALSE}
+# Install the packages: spatialEco using the install.package()
+install.packages("spatialEco")
+
+# Load the packages with library()
+library("spatialEco")
+```
+
+## **1.4. Loading datasets**
+We will dealing raster data only. These are a series of climate, environmental and other social-anthropogenic gridded data from Kenya. We are going to determine areas that are suitable for disease transmission of [**Lymphatic Filariasis**](https://www.cdc.gov/parasites/lymphaticfilariasis/index.html), a neglected tropical disease, caused by a range of mosquitoes that spread the parasitic worms called the **_Wuchereria bancrofti_** through a mosquito bite.
+
+There is evidence that precipitation, temperature, population density, aridity, land surface elevation and vegetation are risk factors for mosquito infestation, and in turn, greatly influencing the way mosquitoes breed and feeding behaviour within human dwellings thus maintaining disease transmission. Lets use the following techniques for mapping this phenonema:
+
+- Suitability Mapping through Binary Classification
+- Suitability Mapping through Ranking
+- Suitability Mapping using Weighted Overlay Analysis
+- MCDA Mapping
+
+Lets begin loading the raster files for the variables of interest:
+
+```{r, eval = FALSE}
+temp <- raster("Kenya Mean Teperature.tif")
+nvdi <- raster("Kenya NDVI.tif")
+prec <- raster("Kenya Precipitation.tif")
+popl <- raster("Kenya Population Density.tif")
+elev <- raster("Kenya Elevation.tif")
+arid <- raster("Kenya Aridity Index.tif")
+# ignore those stupid warning message as these are related to the Migration of PROJ4 to PROJ6
+```
+
+Load the shapefile nation and state borders for Kenya:
+
+```{r, eval = FALSE}
+# load the shapefiles
+kenya_border <- st_read("Kenya_Border_3857.shp")
+kenya_states <- st_read("Kenya_States_3857.shp")
+```
+
+<p class="comment">
+**IMPORTANT NOTES**: All shape file and raster data were in projected to the CRS: Spherical mercator 3857
+</p>
 
 <hr style="border:2px solid gray"> </hr>
