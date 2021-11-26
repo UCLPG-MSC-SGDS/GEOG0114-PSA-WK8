@@ -323,7 +323,7 @@ pre code, pre, code {
 </div>
 <div id="data-sets-setting-up-the-work-directory" class="section level2">
 <h2><strong>1.2. Data sets &amp; setting up the work directory</strong></h2>
-<p>Before you begin do make sure to download all data from <strong>HERE</strong>. If you are working from a UCL workstation, do create a folder called “<strong>Week 8</strong>” within your “<strong>GEOG0114</strong>” folder stored in the N-drive. Extract all data from the zip folder and stored into “<strong>Week 8</strong>” folder. Open a new R script and set the work directory to <strong>Week 8’s</strong> folder (i.e., <strong>Home (N:) &gt; GEOG0114 &gt; Week 8</strong>)</p>
+<p>Before you begin do make sure to download all data from <a href="https://github.com/UCLPG-MSC-SGDS/GEOG0114-PSA-WK8/blob/main/Datasets.zip?raw=true"><strong>HERE</strong></a>. If you are working from a UCL workstation, do create a folder called “<strong>Week 8</strong>” within your “<strong>GEOG0114</strong>” folder stored in the N-drive. Extract all data from the zip folder and stored into “<strong>Week 8</strong>” folder. Open a new R script and set the work directory to <strong>Week 8’s</strong> folder (i.e., <strong>Home (N:) &gt; GEOG0114 &gt; Week 8</strong>)</p>
 <pre class="r"><code># Set working directory to Week 6 folder
 setwd(&quot;N:/GEOG0114/Week 8&quot;)</code></pre>
 <p></br></p>
@@ -344,13 +344,16 @@ library(&quot;raster&quot;)
 library(&quot;sp&quot;)</code></pre>
 <p>The above packages <code>sf</code>, <code>tmap</code>, <code>raster</code> &amp; <code>sp</code> should have been installed in the previous session(s). We will need to install a new package:</p>
 <ul>
-<li><code>spatialEco</code> - Spatial Analysis and Modelling Utilities package, which provides the user further functions for manipulating raster data.</li>
+<li><code>spatialEco</code> - Spatial Analysis and Modelling Utilities package, which provides the user further functions such as <code>raster.invert()</code> which we will need in the third section.</li>
+<li><code>BAMMtools</code> - It provides the user access to an important function <code>getJenksBreaks()</code> for the <code>AHP</code> analysis in the third section.</li>
 </ul>
 <pre class="r"><code># Install the packages: spatialEco using the install.package()
 install.packages(&quot;spatialEco&quot;)
+install.packages(&quot;BAMMtools&quot;)
 
 # Load the packages with library()
-library(&quot;spatialEco&quot;)</code></pre>
+library(&quot;spatialEco&quot;)
+library(&quot;BAMMtools&quot;)</code></pre>
 <p></br></p>
 </div>
 <div id="loading-datasets" class="section level2">
@@ -434,7 +437,7 @@ tm_shape(temp) + tm_raster(style = &quot;cont&quot;, title = &quot;Mean Temperat
 <center>
 <img src="Image1_1.png" title="fig:" alt="““/Users/anwarmusah/Documents/GITHUB/UCLPG-MSC-SGDS/GEOG0114-PSA-WK8”" />
 </center>
-<p><strong>&gt;&gt; Proceed to the next section &gt;&gt;</strong></p>
+<p><a href="https://uclpg-msc-sgds.github.io/GEOG0114-PSA-WK8/classification.html"><strong>&gt;&gt; Proceed to the next section &gt;&gt;</strong></a></p>
 <hr style="border:2px solid gray">
 </hr>
 </div>

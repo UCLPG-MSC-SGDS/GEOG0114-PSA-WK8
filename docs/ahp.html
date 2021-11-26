@@ -303,12 +303,378 @@ border-radius: 5px;
 code.r{
   font-size: 10px;
 }
-pre {
-  font-size: 12px
+
+pre code, pre, code {
+  font-size: 12px;
+  white-space: pre !important;
+  overflow-x: scroll !important;
+  word-break: keep-all !important;
+  word-wrap: initial !important;
 }
+
 </style>
 <hr style="border:2px solid gray">
 </hr>
+<div id="standardizing-the-raster-variables-to-the-same-scale-from-1-to-10" class="section level2">
+<h2><strong>3.1. Standardizing the raster variables to the same scale (from 1 to 10)</strong></h2>
+<p>We are going to use <strong>Saaty’s Analytical Hierarchy Process (AHP)</strong>. We will need to standardize our raster factors in order to make comparisons and combination possible, as all of them contain different measures: <code>temp</code> (degree Celsius), <code>prec</code> (mm), <code>elev</code> (meters), <code>popl</code> (counts/sqkm); while <code>nvdi</code> and <code>arid</code> are derived indices without any units. Before deriving the weights and applying to the equation that is a linear combination of the above variables to estimate the suitability index for LF, we can standardize them using the <code>Jenks Natural Breaks</code> algorithm.</p>
+<p class="comment">
+<strong>IMPORTANT NOTES</strong>: <code>Jenks Natural Breaks</code> algorithm is the preferred approach because it calculates the optimum breakpoints while seeking to minimize the variance within categories, and at the same time maximizing the variance between categories.
+</p>
+<p>Let’s begin to standardize the first variable <code>temp</code>. There is a bit of data cleaning involved - here is the code for to calculate the breaks using Jenks algorithm to get the raster scales from 1 to 10.</p>
+<pre class="r"><code># cleaning for temp
+# Extract values from Raster
+tempValues &lt;- values(temp) 
+
+# Change the values from vector object to data.frame object
+tempDF &lt;- as.data.frame(tempValues)
+
+# Remove missing values and reapply column name
+tempDF &lt;- as.data.frame(tempDF[!is.na(tempDF$tempValues),])
+colnames(tempDF) &lt;- &quot;tempValues&quot;
+
+# Use the getJenksBreaks() function. Sample 0.10 (10%) of the pixels at random and base the categorisation on this. 
+# NOTE: Doing this on the full data will take forever - so use the subset argument. 
+tempJenks &lt;- getJenksBreaks(tempDF$tempValues, 10, subset = nrow(tempDF)*0.10)
+
+# See value in vector
+tempJenks</code></pre>
+<pre><code>##  [1]  2.8 12.1 15.6 18.1 20.3 22.4 24.4 26.1 27.5 29.6</code></pre>
+<pre class="r"><code># shows first element
+tempJenks[1] </code></pre>
+<pre><code>## [1] 2.8</code></pre>
+<pre class="r"><code># shows second element
+tempJenks[2] </code></pre>
+<pre><code>## [1] 12.1</code></pre>
+<pre class="r"><code># so on and so further...
+# Create categorisation by using the Jenks values in the vector
+temp_jenks_cl &lt;- c(temp@data@min-1, tempJenks[1], 1,
+tempJenks[1], tempJenks[2], 2,
+tempJenks[2], tempJenks[3], 3,
+tempJenks[3], tempJenks[4], 4,
+tempJenks[4], tempJenks[5], 5,
+tempJenks[5], tempJenks[6], 6,
+tempJenks[6], tempJenks[7], 7,
+tempJenks[7], tempJenks[8], 8,
+tempJenks[8], tempJenks[9], 9,
+tempJenks[9], temp@data@max+1, 10) 
+
+# create matrix
+temp_jenks_cl_mat &lt;- matrix(temp_jenks_cl, ncol = 3, byrow = TRUE)
+# view categorisation in matrix
+temp_jenks_cl_mat</code></pre>
+<pre><code>##       [,1] [,2] [,3]
+##  [1,]  0.2  2.8    1
+##  [2,]  2.8 12.1    2
+##  [3,] 12.1 15.6    3
+##  [4,] 15.6 18.1    4
+##  [5,] 18.1 20.3    5
+##  [6,] 20.3 22.4    6
+##  [7,] 22.4 24.4    7
+##  [8,] 24.4 26.1    8
+##  [9,] 26.1 27.5    9
+## [10,] 27.5 30.6   10</code></pre>
+<pre class="r"><code># reclassify original raster using the jenks classifications
+temp_jenks_recl &lt;- reclassify(temp, temp_jenks_cl_mat)</code></pre>
+<p>Visualize the output with the scale from 1 to 10:</p>
+<pre class="r"><code>tm_shape(temp_jenks_recl) + tm_raster(style = &quot;cont&quot;, title = &quot;Temp (on Jenks scale)&quot;, palette= &quot;-Spectral&quot;) +
+    tm_shape(kenya_states) + tm_polygons(alpha = 0, border.col = &quot;black&quot;) +
+    tm_layout(frame = FALSE, legend.outside = TRUE)</code></pre>
+<center>
+<img src="Image3_1.png" title="fig:" alt="““/Users/anwarmusah/Documents/GITHUB/UCLPG-MSC-SGDS/GEOG0114-PSA-WK8”" />
+</center>
+<p>We need to repeat this process of reclassification and standardization using natural breaks for the remaining raster grids for <code>prec</code>, <code>arid</code>, <code>popl</code> and <code>ndvi</code>. The solutions are provided in the hidden code chunks below. For <code>elev</code>, we will treat this differently.</p>
+<details>
+<summary>
+Click here
+</summary>
+<p><strong>Solutions</strong></p>
+<pre class="r"><code># 2 prec
+# Extract values from Raster
+precValues &lt;- values(prec) 
+# Change the values from vector object to data.frame object
+precDF &lt;- as.data.frame(precValues)
+# Remove missing values and reapply column name
+precDF &lt;- as.data.frame(precDF[!is.na(precDF$precValues),])
+colnames(precDF) &lt;- &quot;precValues&quot;
+# Use the getJenksBreaks() function. Sample 0.10 (10%) of the pixels at random and base the categorisation on this. 
+# NOTE: Doing this on the full data will take forever - so use the subset argument. 
+precJenks &lt;- getJenksBreaks(precDF$precValues, 10, subset = nrow(precDF)*0.10)
+# See value in vector
+precJenks</code></pre>
+<pre><code>##  [1]  172  299  416  561  706  870 1080 1326 1618 2505</code></pre>
+<pre class="r"><code># shows first element
+precJenks[1] </code></pre>
+<pre><code>## [1] 172</code></pre>
+<pre class="r"><code># shows second element
+precJenks[2] </code></pre>
+<pre><code>## [1] 299</code></pre>
+<pre class="r"><code># so on and so further...
+# Create categorisation by using the Jenks values in the vector
+prec_jenks_cl &lt;- c(prec@data@min-1, precJenks[1], 1,
+precJenks[1], precJenks[2], 2,
+precJenks[2], precJenks[3], 3,
+precJenks[3], precJenks[4], 4,
+precJenks[4], precJenks[5], 5,
+precJenks[5], precJenks[6], 6,
+precJenks[6], precJenks[7], 7,
+precJenks[7], precJenks[8], 8,
+precJenks[8], precJenks[9], 9,
+precJenks[9], prec@data@max+1, 10) 
+# create matrix
+prec_jenks_cl_mat &lt;- matrix(prec_jenks_cl, ncol = 3, byrow = TRUE)
+# view categorisation in matrix
+prec_jenks_cl_mat</code></pre>
+<pre><code>##       [,1] [,2] [,3]
+##  [1,]  171  172    1
+##  [2,]  172  299    2
+##  [3,]  299  416    3
+##  [4,]  416  561    4
+##  [5,]  561  706    5
+##  [6,]  706  870    6
+##  [7,]  870 1080    7
+##  [8,] 1080 1326    8
+##  [9,] 1326 1618    9
+## [10,] 1618 2626   10</code></pre>
+<pre class="r"><code># reclassify original raster using the jenks classifications
+prec_jenks_recl &lt;- reclassify(prec, prec_jenks_cl_mat)
+
+
+# 3. popl
+# Extract values from Raster
+poplValues &lt;- values(popl)
+# Change the values from vector object to data.frame object
+poplDF &lt;- as.data.frame(poplValues)
+# Remove missing values and reapply column name
+poplDF &lt;- as.data.frame(poplDF[!is.na(poplDF$poplValues),])
+colnames(poplDF) &lt;- &quot;poplValues&quot;
+# Use the getJenksBreaks() function. Sample 0.10 (10%) of the pixels at random and base the categorisation on this. 
+# NOTE: Doing this on the full data will take forever - so use the subset argument. 
+poplJenks &lt;- getJenksBreaks(poplDF$poplValues, 10, subset = nrow(poplDF)*0.10)
+# See value in vector
+poplJenks</code></pre>
+<pre><code>##  [1]     0.0000   151.9751   512.5206  1234.2362  3349.1699  7239.2158 13791.5898 23811.1758 33522.6758 56472.0664</code></pre>
+<pre class="r"><code># shows first element
+poplJenks[1] </code></pre>
+<pre><code>## [1] 0</code></pre>
+<pre class="r"><code># shows second element
+poplJenks[2] </code></pre>
+<pre><code>## [1] 151.9751</code></pre>
+<pre class="r"><code># so on and so further...
+# Create categorisation by using the Jenks values in the vector
+popl_jenks_cl &lt;- c(popl@data@min-1, poplJenks[1], 1,
+poplJenks[1], poplJenks[2], 2,
+poplJenks[2], poplJenks[3], 3,
+poplJenks[3], poplJenks[4], 4,
+poplJenks[4], poplJenks[5], 5,
+poplJenks[5], poplJenks[6], 6,
+poplJenks[6], poplJenks[7], 7,
+poplJenks[7], poplJenks[8], 8,
+poplJenks[8], poplJenks[9], 9,
+poplJenks[9], popl@data@max+1, 10) 
+# create matrix
+popl_jenks_cl_mat &lt;- matrix(popl_jenks_cl, ncol = 3, byrow = TRUE)
+# view categorisation in matrix
+popl_jenks_cl_mat</code></pre>
+<pre><code>##             [,1]        [,2] [,3]
+##  [1,]    -1.0000      0.0000    1
+##  [2,]     0.0000    151.9751    2
+##  [3,]   151.9751    512.5206    3
+##  [4,]   512.5206   1234.2362    4
+##  [5,]  1234.2362   3349.1699    5
+##  [6,]  3349.1699   7239.2158    6
+##  [7,]  7239.2158  13791.5898    7
+##  [8,] 13791.5898  23811.1758    8
+##  [9,] 23811.1758  33522.6758    9
+## [10,] 33522.6758 125261.0156   10</code></pre>
+<pre class="r"><code># reclassify original raster using the jenks classifications
+popl_jenks_recl &lt;- reclassify(popl, popl_jenks_cl_mat)
+
+
+# 4 nvdi
+# Extract values from Raster
+nvdiValues &lt;- values(nvdi) 
+# Change the values from vector object to data.frame object
+nvdiDF &lt;- as.data.frame(nvdiValues)
+# Remove missing values and reapply column name
+nvdiDF &lt;- as.data.frame(nvdiDF[!is.na(nvdiDF$nvdiValues),])
+colnames(nvdiDF) &lt;- &quot;nvdiValues&quot;
+# Use the getJenksBreaks() function. Sample 0.10 (10%) of the pixels at random and base the categorisation on this. 
+# NOTE: Doing this on the full data will take forever - so use the subset argument. 
+# EXTRA NOTE: The values for nvdi are very close to each other and so the algorithm splits it to just two cateogries
+nvdiJenks &lt;- getJenksBreaks(nvdiDF$tempValues, 2, subset = nrow(nvdiDF)*0.10)
+# See value in vector
+nvdiJenks</code></pre>
+<pre><code>## [1] 6.951453e-310</code></pre>
+<pre class="r"><code># shows first element
+nvdiJenks[1] </code></pre>
+<pre><code>## [1] 6.951453e-310</code></pre>
+<pre class="r"><code># shows second element
+nvdiJenks[2] </code></pre>
+<pre><code>## [1] NA</code></pre>
+<pre class="r"><code># so on and so further...
+# Create categorisation by using the Jenks values in the vector
+nvdi_jenks_cl &lt;- c(nvdi@data@min-1, nvdiJenks[1], 1,
+nvdiJenks[1], nvdi@data@max+1, 2)
+# create matrix
+nvdi_jenks_cl_mat &lt;- matrix(nvdi_jenks_cl, ncol = 3, byrow = TRUE)
+# view categorisation in matrix
+nvdi_jenks_cl_mat</code></pre>
+<pre><code>##                [,1]          [,2] [,3]
+## [1,]  -1.116113e+00 6.951453e-310    1
+## [2,]  6.951453e-310  1.874337e+00    2</code></pre>
+<pre class="r"><code># reclassify original raster using the jenks classifications
+nvdi_jenks_recl &lt;- reclassify(nvdi, nvdi_jenks_cl_mat)
+
+
+# 5. arid
+# Extract values from Raster
+aridValues &lt;- values(arid) 
+# Change the values from vector object to data.frame object
+aridDF &lt;- as.data.frame(aridValues)
+# Remove missing values and reapply column name
+aridDF &lt;- as.data.frame(aridDF[!is.na(aridDF$aridValues),])
+colnames(aridDF) &lt;- &quot;aridValues&quot;
+# Use the getJenksBreaks() function. Sample 0.10 (10%) of the pixels at random and base the categorisation on this. 
+# NOTE: Doing this on the full data will take forever - so use the subset argument.
+# EXTRA NOTE: The values for aridity are very close to each other and so the algorithm splits it to just two cateogries
+aridJenks &lt;- getJenksBreaks(aridDF$aridValues, 2, subset = nrow(aridDF)*0.10)
+# See value in vector
+aridJenks</code></pre>
+<pre><code>## [1] 0.08372869 2.58311462</code></pre>
+<pre class="r"><code># shows first element
+aridJenks[1] </code></pre>
+<pre><code>## [1] 0.08372869</code></pre>
+<pre class="r"><code># shows second element
+aridJenks[2] </code></pre>
+<pre><code>## [1] 2.583115</code></pre>
+<pre class="r"><code># so on and so further...
+# Create categorisation by using the Jenks values in the vector
+arid_jenks_cl &lt;- c(arid@data@min-1, aridJenks[1], 1,
+aridJenks[1], arid@data@max+1, 2) 
+# create matrix
+arid_jenks_cl_mat &lt;- matrix(arid_jenks_cl, ncol = 3, byrow = TRUE)
+# view categorisation in matrix
+arid_jenks_cl_mat</code></pre>
+<pre><code>##             [,1]       [,2] [,3]
+## [1,] -0.91650000 0.08372869    1
+## [2,]  0.08372869 3.75479984    2</code></pre>
+<pre class="r"><code># reclassify original raster using the jenks classifications
+arid_jenks_recl &lt;- reclassify(arid, arid_jenks_cl_mat)</code></pre>
+</details>
+<p></br></p>
+<p>For elevation, the risk of LF.decreases with higher values for elevation. Therefore, after applying the Jenks intervals, we need to flip the raster values accordingly.</p>
+<pre class="r"><code># 6. elev
+
+# Extract values from Raster
+elevValues &lt;- values(elev) 
+# Change the values from vector object to data.frame object
+elevDF &lt;- as.data.frame(elevValues)
+# Remove missing values and reapply column name
+elevDF &lt;- as.data.frame(elevDF[!is.na(elevDF$elevValues),])
+colnames(elevDF) &lt;- &quot;elevValues&quot;
+# Use the getJenksBreaks() function. Sample 0.10 (10%) of the pixels at random and base the categorisation on this. 
+# NOTE: Doing this on the full data will take forever - so use the subset argument. 
+elevJenks &lt;- getJenksBreaks(elevDF$elevValues, 10, subset = nrow(elevDF)*0.10)
+# See value in vector
+elevJenks</code></pre>
+<pre><code>##  [1]   -1  254  480  715 1011 1363 1729 2155 2748 4258</code></pre>
+<pre class="r"><code># shows first element
+elevJenks[1] </code></pre>
+<pre><code>## [1] -1</code></pre>
+<pre class="r"><code># shows second element
+elevJenks[2] </code></pre>
+<pre><code>## [1] 254</code></pre>
+<pre class="r"><code># so on and so further...
+# Create categorisation by using the Jenks values in the vector
+elev_jenks_cl &lt;- c(elev@data@min-1, elevJenks[1], 1,
+                                     elevJenks[1], elevJenks[2], 2,
+                                     elevJenks[2], elevJenks[3], 3,
+                                     elevJenks[3], elevJenks[4], 4,
+                                     elevJenks[4], elevJenks[5], 5,
+                                     elevJenks[5], elevJenks[6], 6,
+                                     elevJenks[6], elevJenks[7], 7,
+                                     elevJenks[7], elevJenks[8], 8,
+                                     elevJenks[8], elevJenks[9], 9,
+                                     elevJenks[9], elev@data@max+1, 10) 
+# create matrix
+elev_jenks_cl_mat &lt;- matrix(elev_jenks_cl, ncol = 3, byrow = TRUE)
+# view categorisation in matrix
+elev_jenks_cl_mat</code></pre>
+<pre><code>##       [,1] [,2] [,3]
+##  [1,]  -12   -1    1
+##  [2,]   -1  254    2
+##  [3,]  254  480    3
+##  [4,]  480  715    4
+##  [5,]  715 1011    5
+##  [6,] 1011 1363    6
+##  [7,] 1363 1729    7
+##  [8,] 1729 2155    8
+##  [9,] 2155 2748    9
+## [10,] 2748 4866   10</code></pre>
+<pre class="r"><code># reclassify original raster using the jenks classifications
+elev_jenks_recl &lt;- reclassify(elev, elev_jenks_cl_mat)
+
+# Now flip the values using raster.invert() function
+rev_elev_jenks_recl &lt;- raster.invert(elev_jenks_recl)</code></pre>
+<p>Visualize the inverted output (NOTE: Blue: High elevation, Red: low elevation):</p>
+<pre class="r"><code>tm_shape(rev_elev_jenks_recl) + tm_raster(style = &quot;cont&quot;, title = &quot;Inverted Elev (on Jenks scale)&quot;, palette= &quot;-Spectral&quot;) +
+    tm_shape(kenya_states) + tm_polygons(alpha = 0, border.col = &quot;black&quot;) +
+    tm_layout(frame = FALSE, legend.outside = TRUE)</code></pre>
+<center>
+<img src="Image3_2.png" title="fig:" alt="““/Users/anwarmusah/Documents/GITHUB/UCLPG-MSC-SGDS/GEOG0114-PSA-WK8”" />
+</center>
+</div>
+<div id="determining-the-weight-of-each-variable-using-saatys-ahp" class="section level2">
+<h2><strong>3.2. Determining the weight of each variable using Saaty’s AHP</strong></h2>
+<p>To estimate the weights, a helpful tool has been developed and provided in an Excel Worksheet. It has been created for you so that you can see how the calculations are carryout step-by-step to derive the weights. You can interact with the cells to see the formulas and explanations are provided at each step of the way.</p>
+<p>Open the spreadsheet <code>Guidance - AHP Calculator Tool.xlsx</code> and read &amp; follow through the steps carefully. These are steps summarized here:</p>
+<ul>
+<li><strong>Pairwise comparison &amp; Judgement values</strong>: Carry out a pairwise comparison of the factors by constructing a matrix as seen in step 1 in the spreadsheet. Use the criteria and make a <strong>“Judgement”</strong> on the pairwise comparison (it could be based on expert opinion or from literature) asserting a variable’s importance over the other.</li>
+<li><strong>Matrices</strong>: Create a square matrix with the judgement values inserted accordingly (see step 2)</li>
+<li><strong>Reciprocals</strong>: Take the reciprocals in the matrix (see step 3)</li>
+<li><strong>Take column sums</strong>: Sum each of the columns accordingly (see step 4)</li>
+<li><strong>Normalization of matrix</strong>: For each element in a column in that square matrix, divide it by it’s corresponding column sum. Repeat this step for all other elements in that matrix. Once completed, sum-up the elements from the division for each row and finally divide it by the number of variables to obtain the <strong>priority vector or weights</strong>. You know that the calculations are correct if the sum of the weights are equal to <code>1</code> (see step 5).</li>
+<li><strong>Validation of whether judgement values are reasonable</strong>: We need to calculate a <strong>Consistency Ratio (CR)</strong>, which is derived from the <strong>Consistency Index (CI)</strong> divided by the <strong>Random Index (RI)</strong>. For the <strong>CI</strong>, we estimate an eigenvalue which is derived from the summed products between the summed column multplied by the weights (see step 6 and click on the cell <code>C75</code> to view formula). Use the eigenvalue and estimate the <strong>CI</strong> (see formula in the notes for step 6). Next, use the Random Index table (developed by Saaty, 1980) to determine the <strong>RI</strong> based on the dimension of the matrix (in this case, it is 6). Finally, calculate the <strong>CR</strong> by dividing the <strong>CI</strong>/<strong>RI</strong> (see step 6 and click on the cell <code>E91</code> to view the formula). If <strong>CI</strong> &lt; 1., the judgement values assigned in step 1 are fine. If <strong>CR</strong> is bigger than 1.0, then judgement values in pairwise comparison in step 1 were unreasonable (and thus you’ll have to repeat step with different values again!)</li>
+</ul>
+<p></br></p>
+</div>
+<div id="weighted-linear-combination-wlc-and-derivation-of-suitability-maps-based-from-ahp-analysis" class="section level2">
+<h2><strong>3.3. Weighted Linear Combination (WLC) and derivation of Suitability Maps based from AHP analysis</strong></h2>
+<p>Our model uses the <strong>Weighted Linear Combination (WLC)</strong> approach as the decision rule. The formula to estimate the suitability of LF is as follows:</p>
+<center>
+<strong>Suitability (LF)</strong> = <strong><span class="math inline">\(w_1x_1 + w_2x_2 + w_3x_3 + w_4x_4 + w_5x_5 + w_6x_6\)</span></strong>
+</center>
+<p></br></p>
+<p>The <span class="math inline">\(w_i\)</span> and <span class="math inline">\(x_i\)</span> represent the weights deprived from AHP analysis and raster variables. The weights are multiplied to it corresponding raster to obtain a raster with values weighted but ultimately scaled with an upper limit of <code>10</code> (but slightly adjusted for NDVI and Aridity because their scaled to <code>2</code>).</p>
+<p>This is the derived formula to use in calculating the suitability regions for LF in RStudio:</p>
+<pre class="r"><code># use the rescaled columns in the formula (not the originals!)
+suitablemap_WLC &lt;- 0.3324*prec_jenks_recl + 0.2775*temp_jenks_recl + 0.1571*popl_jenks_recl + 0.0901*nvdi_jenks_recl + 0.0767*arid_jenks_recl + 0.0659*rev_elev_jenks_recl
+
+suitablemap_WLC</code></pre>
+<pre><code>## class      : RasterLayer 
+## dimensions : 1090, 892, 972280  (nrow, ncol, ncell)
+## resolution : 1000, 1000  (x, y)
+## extent     : 3774798, 4666798, -526069.9, 563930.1  (xmin, xmax, ymin, ymax)
+## crs        : +proj=merc +a=6378137 +b=6378137 +lat_ts=0 +lon_0=0 +x_0=0 +y_0=0 +k=1 +units=m +nadgrids=@null +wktext +no_defs 
+## source     : memory
+## names      : layer 
+## values     : 3.2741, 7.4973  (min, max)</code></pre>
+<p>Finally, visualize the output:</p>
+<pre class="r"><code>tm_shape(suitablemap_WLC) + tm_raster(style = &quot;cont&quot;, title = &quot;LF Suitability (AHP WLC)&quot;, palette= &quot;-Spectral&quot;) +
+    tm_shape(kenya_states) + tm_polygons(alpha = 0, border.col = &quot;black&quot;) + tm_text(&quot;NAME_1&quot;, size = &quot;AREA&quot;) +
+    tm_layout(frame = FALSE, legend.outside = TRUE, legend.title.size = 0.5, legend.text.size = 0.5) + 
+    tm_scale_bar(position = c(&quot;left&quot;,&quot;bottom&quot;)) + tm_compass(position = c(&quot;right&quot;, &quot;top&quot;))</code></pre>
+<center>
+<img src="Image3_3.png" title="fig:" alt="““/Users/anwarmusah/Documents/GITHUB/UCLPG-MSC-SGDS/GEOG0114-PSA-WK8”" />
+</center>
+<p class="comment">
+<strong>IMPORTANT NOTES</strong>: The suitability ranges are estimated to be from 3.27 to 7.49 (weighted on a scale with a upper limit of 10). The highest suitability for LF are regions with values closest to 7.49 and <em>vice versa</em>.
+</p>
+<p><a href="https://uclpg-msc-sgds.github.io/GEOG0114-PSA-WK8/recommendations.html"><strong>&gt;&gt; Next section: Recommended Reading &gt;&gt;</strong></a></p>
+<hr style="border:2px solid gray">
+</hr>
+</div>
 
 
 

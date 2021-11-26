@@ -293,25 +293,59 @@ body{/* Normal */
     text-align: justify;
 }
 
+p.comment {
+background-color: #DBDBDB;
+padding: 10px;
+border: 1px solid black;
+border-radius: 5px;
+}
+
 code.r{
   font-size: 10px;
 }
-pre {
-  font-size: 12px
+
+pre code, pre, code {
+  font-size: 12px;
+  white-space: pre !important;
+  overflow-x: scroll !important;
+  word-break: keep-all !important;
+  word-wrap: initial !important;
 }
+
 </style>
 <hr style="border:2px solid gray">
 </hr>
 <div id="list-of-reading-materials" class="section level2">
 <h2><strong>4.1. List of Reading Materials</strong></h2>
+<ol style="list-style-type: decimal">
+<li><strong>Paper</strong>: R.W. Saaty (1987). The Analytical Hierarchy Process - What it is and how it is used, Mathl Modelling, Volume 9(3-5), pages 161 to 176 <a href="https://core.ac.uk/download/pdf/82000104.pdf"><strong>LINK</strong></a></li>
+<li><strong>Technical Document</strong>: IDRISI Kilimanjaro: Guide to GIS and Image Processing. Chapter 12: Decision Support - Decision Strategy Analysis, Section on ‘A Typology of Decisions’, pages 151 to 154. <a href="https://www.mtholyoke.edu/courses/tmillett/course/geog307/files/Kilimanjaro%20Manual.pdf"><strong>DOWNLOAD</strong></a></li>
+<li><strong>Paper</strong>: A.A. Ali, A. Ahmad (2019). Spatial susceptibility analysis of vector-borne diseases in KMC using geospatial technique and MCDM approach, Modeling Earth Systems and Environment, Issue 5, pages 1135–1159 <a href="https://link.springer.com/article/10.1007/s40808-019-00586-y"><strong>LINK</strong></a></li>
+<li><strong>Paper</strong>: X. Zhao et al., (2020). Malaria Risk Map Using Spatial Multi-Criteria Decision Analysis along Yunnan Border During the Pre-elimination Period, Am J Trop Med Hyg, Volume 103 (2), pages 793–809 <a href="https://www.ajtmh.org/view/journals/tpmd/103/2/article-p793.xml?tab_body=pdf"><strong>LINK</strong></a></li>
+<li><strong>Paper</strong>: B. Ahmed (2015). Landslide susceptibility mapping using multi-criteria evaluation techniques in Chittagong Metropolitan Area, Bangladesh. Landslides, Issue 12, pages 1077–1095 <a href="https://link.springer.com/article/10.1007/s10346-014-0521-x"><strong>LINK</strong></a></li>
+</ol>
 <p></br></p>
 </div>
 <div id="data-sources" class="section level2">
 <h2><strong>4.2. Data Sources</strong></h2>
+<ol style="list-style-type: decimal">
+<li>The population density 2015 data for Kenya was obtained from Worldpop and resampled at 1km <a href="https://www.worldpop.org/geodata/summary?id=41972"><strong>Click Here</strong></a></li>
+<li>Raster for annual precipitation was created from <strong>bio1_27</strong> and <strong>bio1_37</strong>, averaged and clipped to Kenya. Obtained for WorldClim <a href="https://www.worldclim.org/data/monthlywth.html"><strong>Click Here</strong></a></li>
+<li>Raster for annual temperature was created from <strong>bio1_27</strong> and <strong>bio1_37</strong>, averaged and clipped to Kenya. Obtained for WorldClim <a href="https://www.worldclim.org/data/monthlywth.html"><strong>Click Here</strong></a></li>
+<li>Aridity Index data was obtained for the Global Aridity and PET Database and clipped to Kenya <a href="https://cgiarcsi.community/data/global-aridity-and-pet-database/"><strong>Click Here</strong></a></li>
+<li>Normalized Differenced Vegetation Index was obtained from NASA MODIS <a href="https://modis.gsfc.nasa.gov/data/dataprod/mod13.php"><strong>Click Here</strong></a> (Registration required).</li>
+<li>Elevation was obtained from the SRTM CSI CGIAR Project, and cropped to Kenya <a href="https://srtm.csi.cgiar.org/srtmdata/"><strong>Click Here</strong></a></li>
+</ol>
 <p></br></p>
 </div>
-<div id="homework-exercise" class="section level2">
-<h2><strong>4.3. Homework Exercise</strong></h2>
+<div id="practice-exercise" class="section level2">
+<h2><strong>4.3. Practice Exercise</strong></h2>
+<p><strong>Context</strong>: Landslides are among the most widespread natural hazards of mountainous regions in the world. Each year landslides cause colossal loss to lives, properties, and disruption of land transportation services. Developing spatial information on landslide is vital for implementation of policies and reducing losses. Here we use 11 data layers that include information on slope, rainfall, land use, geology, soil, elevation, aspect, hill cutting, streams, roads, and lineaments for landslide hazard analysis of an in Bangladesh.</p>
+<p><strong>Aims</strong>: This exercise aims to develop a landslide hazard map with the complementary use of Earth Observatory data, Geographic Information System, and Analytic Hierarchy Process (AHP). Use the techniques learnt to create your spreadsheet for determining the weights and areas for hazard areas of slides. You can refer to the Landslide publication for clues on determining your judgement values.</p>
+<p>All practice data can be downloaded from <a href="https://github.com/UCLPG-MSC-SGDS/GEOG0114-PSA-WK8/blob/main/Landslide.zip?raw=true"><strong>HERE</strong></a></p>
+<p class="comment">
+<strong>IMPORTANT NOTES</strong>: Please do this in your free time.
+</p>
 <hr style="border:2px solid gray">
 </hr>
 </div>
