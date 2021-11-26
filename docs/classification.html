@@ -271,7 +271,299 @@ $(document).ready(function () {
 </div>
 
 
+<style type: "text/css">
+h1.title {
+    font-size: 20px;
+}
 
+h4.date {
+    font-size: 18px;
+}
+
+h1 {
+    font-size: 18px;
+}
+
+h2 {
+    font-size: 18px;
+}
+
+body{/* Normal */
+    font-size: 13px;
+    text-align: justify;
+}
+
+p.comment {
+background-color: #DBDBDB;
+padding: 10px;
+border: 1px solid black;
+border-radius: 5px;
+}
+
+code.r{
+  font-size: 10px;
+}
+
+pre code, pre, code {
+  font-size: 12px;
+  white-space: pre !important;
+  overflow-x: scroll !important;
+  word-break: keep-all !important;
+  word-wrap: initial !important;
+}
+
+</style>
+<hr style="border:2px solid gray">
+</hr>
+<div id="suitability-mapping-using-binary-classification-or-ratings" class="section level2">
+<h2><strong>2.1. Suitability Mapping using Binary Classification OR Ratings</strong></h2>
+<p>One thing to know about this approach - the mappings are purely knowledge-driven and not analytical. For instance, according to previous studies [1,2,3], we have learnt a bit about the limits or thresholds for these predictors from or below which we can consider an area being suitable for the occurrence of <strong>Lymphatic Filariasis (LF)</strong>.</p>
+<p>We have summarized these limits or thresholds in a table as follows:</p>
+<table>
+<thead>
+<tr class="header">
+<th><strong>Risk factor</strong></th>
+<th><strong>Threshold for suitability</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>Temperature</code></td>
+<td>&gt; 15.0 (degree Celsius)</td>
+</tr>
+<tr class="even">
+<td><code>Precipitation</code></td>
+<td>&gt; 350 (mm of rainfall)</td>
+</tr>
+<tr class="odd">
+<td><code>Aridity</code></td>
+<td>&gt; 0.20 (i.e., semi-arid (&gt; 0.5) dry sub-humid)</td>
+</tr>
+<tr class="even">
+<td><code>Elevation</code></td>
+<td>&lt; 1200m (low land)</td>
+</tr>
+<tr class="odd">
+<td><code>Population Density</code></td>
+<td>&gt; 0 (Inhabitants must exist source for blood meal)</td>
+</tr>
+<tr class="even">
+<td><code>NDVI</code></td>
+<td>&gt; 0.5 (mild levels of vegetation)</td>
+</tr>
+</tbody>
+</table>
+<p>We should use the aforementioned thresholds to produce binary or Boolean maps using the above criteria. This means that the pixel values of each raster layer will be equal to <code>0</code> indicating that its an unsuitable condition for LF transmission, and <code>1</code> for suitable conditions for LF transmission.</p>
+<p>Let us reclassify each layer according to the above criteria, starting with temperature:</p>
+<pre class="r"><code># reclassify temperature as a binary or Boolean layer
+temp</code></pre>
+<pre><code>## class      : RasterLayer 
+## dimensions : 1090, 892, 972280  (nrow, ncol, ncell)
+## resolution : 1000, 1000  (x, y)
+## extent     : 3774798, 4666798, -526069.9, 563930.1  (xmin, xmax, ymin, ymax)
+## crs        : +proj=merc +a=6378137 +b=6378137 +lat_ts=0 +lon_0=0 +x_0=0 +y_0=0 +k=1 +units=m +nadgrids=@null +wktext +no_defs 
+## source     : Kenya Mean Teperature.tif 
+## names      : Kenya_Mean_Teperature 
+## values     : 1.2, 29.6  (min, max)</code></pre>
+<pre class="r"><code># lowest value = 1.2
+# highest value = 29.6
+# reclassify anything below 15 as 0 and above as 1
+# take the minimum value and minus 1 to it to ensure that lowest value is included in the categorization for 0 
+# take the maximum value and add 1 to it to also ensure that the highest value is included in the categorization for 1
+
+# c(from lowest value, to threshold, class as 0, from thresholds, to maximum value, class as 1)
+temp_cl &lt;- c(temp@data@min-1, 15, 0, 15, temp@data@max+1, 1) 
+# convert into a matrix format
+temp_cl_mat &lt;- matrix(temp_cl, ncol = 3, byrow = TRUE)
+# see matrix
+temp_cl_mat</code></pre>
+<pre><code>##      [,1] [,2] [,3]
+## [1,]  0.2 15.0    0
+## [2,] 15.0 30.6    1</code></pre>
+<pre class="r"><code># apply matrix to reclassify() function to categorize the raster accordingly
+temp_recl &lt;- reclassify(temp, temp_cl_mat)</code></pre>
+<p>When you reclassify the raster for <code>temp</code> to <code>temp_recl</code>. This is what the output should look like:</p>
+<pre class="r"><code>tm_shape(temp_recl) + tm_raster(style = &quot;cat&quot;, title = &quot;Temperature&quot;, palette= c(&quot;grey&quot;, &quot;#F1948A&quot;), labels = c(&quot;Unsuitable (&lt;15.0)&quot;, &quot;Suitable (15 &amp; above)&quot;)) +
+    tm_shape(kenya_states) + tm_polygons(alpha = 0, border.col = &quot;black&quot;) +
+    tm_layout(frame = FALSE, legend.outside = TRUE)</code></pre>
+<center>
+<img src="Image2_1.png" title="fig:" alt="““/Users/anwarmusah/Documents/GITHUB/UCLPG-MSC-SGDS/GEOG0114-PSA-WK8”" />
+</center>
+<p>Lets repeat the same steps for elevation to reclassify it’s layer according to the given criteria:</p>
+<pre class="r"><code># reclassify elevation as a binary or Boolean layer
+elev</code></pre>
+<pre><code>## class      : RasterLayer 
+## dimensions : 1090, 892, 972280  (nrow, ncol, ncell)
+## resolution : 1000, 1000  (x, y)
+## extent     : 3774798, 4666798, -526069.9, 563930.1  (xmin, xmax, ymin, ymax)
+## crs        : +proj=merc +a=6378137 +b=6378137 +lat_ts=0 +lon_0=0 +x_0=0 +y_0=0 +k=1 +units=m +nadgrids=@null +wktext +no_defs 
+## source     : Kenya Elevation.tif 
+## names      : Kenya_Elevation 
+## values     : -11, 4865  (min, max)
+## attributes :
+##          ID OBJECTID COUNT
+##  from:  -11      410     1
+##   to : 4865     5286     1</code></pre>
+<pre class="r"><code># lowest value = -11m (below sea level)
+# highest value = 4865m (above sea level)
+# reclassify anything below 1200m as 1 and above as 0
+# again, take the minimum value and minus 1 to it to ensure that lowest value is included in the categorization for 0 
+# again, take the maximum value and add 1 to it to also ensure that the highest value is included in the categorization for 1
+
+# c(from lowest value, to threshold, class as 1, from thresholds, to maximum value, class as 0)
+elev_cl &lt;- c(elev@data@min-1, 1200, 1, 1200, elev@data@max+1, 0)
+# convert into a matrix format
+elev_cl_mat &lt;- matrix(elev_cl, ncol = 3, byrow = TRUE) 
+# see matrix
+elev_cl_mat</code></pre>
+<pre><code>##      [,1] [,2] [,3]
+## [1,]  -12 1200    1
+## [2,] 1200 4866    0</code></pre>
+<pre class="r"><code># apply matrix to reclassify() function to categorize the raster accordingly
+elev_recl &lt;- reclassify(elev, elev_cl_mat)</code></pre>
+<p>The elevation output should look something like:</p>
+<pre class="r"><code>tm_shape(elev_recl) + tm_raster(style = &quot;cat&quot;, title = &quot;Elevation&quot;, palette= c(&quot;grey&quot;, &quot;orange&quot;), labels = c(&quot;Unsuitable (&gt;1200m)&quot;, &quot;Suitable (1200m &amp; below)&quot;)) +
+    tm_shape(kenya_states) + tm_polygons(alpha = 0, border.col = &quot;black&quot;) +
+    tm_layout(frame = FALSE, legend.outside = TRUE)</code></pre>
+<center>
+<img src="Image2_2.png" title="fig:" alt="““/Users/anwarmusah/Documents/GITHUB/UCLPG-MSC-SGDS/GEOG0114-PSA-WK8”" />
+</center>
+<p>Try reclassifying the remaining raster <code>arid</code>, <code>prec</code>, <code>popl</code> and <code>ndvi</code>. The solutions are provided in the code chunks below.</p>
+<details>
+<summary>
+Click here
+</summary>
+<p><strong>Solutions</strong></p>
+<pre class="r"><code># nvdi
+nvdi</code></pre>
+<pre><code>## class      : RasterLayer 
+## dimensions : 1090, 892, 972280  (nrow, ncol, ncell)
+## resolution : 1000, 1000  (x, y)
+## extent     : 3774798, 4666798, -526069.9, 563930.1  (xmin, xmax, ymin, ymax)
+## crs        : +proj=merc +a=6378137 +b=6378137 +lat_ts=0 +lon_0=0 +x_0=0 +y_0=0 +k=1 +units=m +nadgrids=@null +wktext +no_defs 
+## source     : Kenya NDVI.tif 
+## names      : Kenya_NDVI 
+## values     : -0.1161125, 0.8743375  (min, max)</code></pre>
+<pre class="r"><code>nvdi_cl &lt;- c(nvdi@data@min-1, 0.5, 0, 0.5, nvdi@data@max+1, 1)
+nvdi_cl_mat &lt;- matrix(nvdi_cl, ncol = 3, byrow = TRUE); nvdi_cl_mat</code></pre>
+<pre><code>##           [,1]     [,2] [,3]
+## [1,] -1.116113 0.500000    0
+## [2,]  0.500000 1.874337    1</code></pre>
+<pre class="r"><code>nvdi_recl &lt;- reclassify(nvdi, nvdi_cl_mat)
+
+# prec
+prec</code></pre>
+<pre><code>## class      : RasterLayer 
+## dimensions : 1090, 892, 972280  (nrow, ncol, ncell)
+## resolution : 1000, 1000  (x, y)
+## extent     : 3774798, 4666798, -526069.9, 563930.1  (xmin, xmax, ymin, ymax)
+## crs        : +proj=merc +a=6378137 +b=6378137 +lat_ts=0 +lon_0=0 +x_0=0 +y_0=0 +k=1 +units=m +nadgrids=@null +wktext +no_defs 
+## source     : Kenya Precipitation.tif 
+## names      : Kenya_Precipitation 
+## values     : 172, 2625  (min, max)
+## attributes :
+##          ID OBJECTID Value Count
+##  from:    0        1   172     8
+##   to : 2206     2207  2625     1</code></pre>
+<pre class="r"><code>prec_cl &lt;- c(prec@data@min-1, 350, 0, 350, prec@data@max+1, 1)
+prec_cl_mat &lt;- matrix(prec_cl, ncol = 3, byrow = TRUE); 
+prec_cl_mat</code></pre>
+<pre><code>##      [,1] [,2] [,3]
+## [1,]  171  350    0
+## [2,]  350 2626    1</code></pre>
+<pre class="r"><code>prec_recl &lt;- reclassify(prec, prec_cl_mat)
+
+# popl
+popl</code></pre>
+<pre><code>## class      : RasterLayer 
+## dimensions : 1090, 892, 972280  (nrow, ncol, ncell)
+## resolution : 1000, 1000  (x, y)
+## extent     : 3774798, 4666798, -526069.9, 563930.1  (xmin, xmax, ymin, ymax)
+## crs        : +proj=merc +a=6378137 +b=6378137 +lat_ts=0 +lon_0=0 +x_0=0 +y_0=0 +k=1 +units=m +nadgrids=@null +wktext +no_defs 
+## source     : Kenya Population Density.tif 
+## names      : Kenya_Population_Density 
+## values     : 0, 125260  (min, max)</code></pre>
+<pre class="r"><code>popl_cl &lt;- c(popl@data@min-1, 0, 0, 0, popl@data@max+1, 1)
+popl_cl_mat &lt;- matrix(popl_cl, ncol = 3, byrow = TRUE)
+popl_cl_mat</code></pre>
+<pre><code>##      [,1]   [,2] [,3]
+## [1,]   -1      0    0
+## [2,]    0 125261    1</code></pre>
+<pre class="r"><code>popl_recl &lt;- reclassify(popl , popl_cl_mat)
+
+# arid
+arid</code></pre>
+<pre><code>## class      : RasterLayer 
+## dimensions : 1090, 892, 972280  (nrow, ncol, ncell)
+## resolution : 1000, 1000  (x, y)
+## extent     : 3774798, 4666798, -526069.9, 563930.1  (xmin, xmax, ymin, ymax)
+## crs        : +proj=merc +a=6378137 +b=6378137 +lat_ts=0 +lon_0=0 +x_0=0 +y_0=0 +k=1 +units=m +nadgrids=@null +wktext +no_defs 
+## source     : Kenya Aridity Index.tif 
+## names      : Kenya_Aridity_Index 
+## values     : 0.0835, 2.7548  (min, max)</code></pre>
+<pre class="r"><code>arid_cl &lt;- c(arid@data@min-1, 0.20, 0, 0.20, arid@data@max+1, 1)
+arid_cl_mat &lt;- matrix(arid_cl, ncol = 3, byrow = TRUE)
+arid_cl_mat</code></pre>
+<pre><code>##         [,1]   [,2] [,3]
+## [1,] -0.9165 0.2000    0
+## [2,]  0.2000 3.7548    1</code></pre>
+<pre class="r"><code>arid_recl &lt;- reclassify(arid, arid_cl_mat)</code></pre>
+</details>
+<p></br></p>
+</div>
+<div id="finding-areas-of-suitability-by-multiplying-the-binary-maps" class="section level2">
+<h2><strong>2.2. Finding areas of suitability by multiplying the binary maps</strong></h2>
+<p>We can identify the environmentally suitable areas for occurrence of <strong>LF</strong> by simply multiplying the binary maps. Therefore, only the cells or areas with the value of <code>1</code> will be kept in the output raster layer. You can do this by writing the following formula:</p>
+<pre class="r"><code>Suitable_LF_Binary &lt;- temp_recl*nvdi_recl*prec_recl*elev_recl*popl_recl*arid_recl</code></pre>
+<p>Visualizing the output:</p>
+<pre class="r"><code>tm_shape(Suitable_LF_Binary) + tm_raster(style = &quot;cat&quot;, title = &quot;&quot;, palette=c(&quot;#f0f0f0&quot;, &quot;red&quot;), labels=c(&quot;Zone: Not Suitable&quot;, &quot;Zone: Highly Suitable&quot;)) +
+    tm_shape(kenya_states) + tm_polygons(alpha = 0, border.col = &quot;black&quot;) +
+    tm_layout(frame = FALSE, legend.outside = TRUE)</code></pre>
+<center>
+<img src="Image2_3.png" title="fig:" alt="““/Users/anwarmusah/Documents/GITHUB/UCLPG-MSC-SGDS/GEOG0114-PSA-WK8”" />
+</center>
+<p class="comment">
+<strong>IMPORTANT NOTES</strong>: Red region corresponds to areas that are highly suitable for LF. South East of Kenya (i.e., Kwale, Kilifi and Lamu) are environmental suitable based on binary classification
+</p>
+<p></br></p>
+</div>
+<div id="finding-areas-of-suitability-by-summing-the-binary-maps-to-create-ratings" class="section level2">
+<h2><strong>2.3. Finding areas of suitability by summing the binary maps to create ratings</strong></h2>
+<p>We can identify the environmentally suitable areas for occurrence of <strong>LF</strong> by simply summing the binary maps generate ratings for each pixel to show the intensity of suitability for <strong>LF</strong>. A pixel with a summed value would mean the following:</p>
+<ul>
+<li><code>0</code> would mean that none of the six factors are present at pixel.</li>
+<li><code>1</code> would mean at least one out of the six factors are present at that pixel.</li>
+<li><code>2</code> would mean at least two out of the six risk factors are present at that pixel (and so on…)</li>
+<li><code>6</code> is the maximum meaning that all factors are present there. Therefore, pixel is rated as the highest levels of suitability for LF.</li>
+</ul>
+<p>To sum up the raster, we would first need to use the <code>stack()</code> function before using the <code>calc()</code> for the summation.</p>
+<pre class="r"><code>RasterStack &lt;- stack(temp_recl, nvdi_recl, prec_recl, elev_recl, popl_recl, arid_recl)
+Suitable_LF_Summed &lt;- calc(RasterStack, sum)
+# check for minimum and maximum
+Suitable_LF_Summed@data@min</code></pre>
+<pre><code>## [1] 2</code></pre>
+<pre class="r"><code>Suitable_LF_Summed@data@max</code></pre>
+<pre><code>## [1] 6</code></pre>
+<pre class="r"><code># minimum = 2
+# maximum = 6</code></pre>
+<p>Visualizing the output:</p>
+<pre class="r"><code>tm_shape(Suitable_LF_Summed) + tm_raster(style = &quot;cat&quot;, title = &quot;Suitability score&quot;, palette=c(&quot;#FDFEFE&quot;, &quot;#FADBD8&quot;, &quot;#F5B7B1&quot;, &quot;#F1948A&quot;, &quot;#E74C3C&quot;), labels=c(&quot;Low (2)&quot;, &quot;Modest (3)&quot;, &quot;Medium (4)&quot;, &quot;High (5)&quot;, &quot;Highest (6)&quot;)) +
+    tm_shape(kenya_states) + tm_polygons(alpha = 0, border.col = &quot;black&quot;) + tm_text(&quot;NAME_1&quot;, size = &quot;AREA&quot;) +
+    tm_layout(frame = FALSE, legend.outside = TRUE)</code></pre>
+<center>
+<img src="Image2_4.png" title="fig:" alt="““/Users/anwarmusah/Documents/GITHUB/UCLPG-MSC-SGDS/GEOG0114-PSA-WK8”" />
+</center>
+<p class="comment">
+<strong>IMPORTANT NOTES</strong>: Using this approach allows the user to see of the fly the intensity for LF suitability. States such as Mandera, Wajir, Isiolo and Turkana have areas that have largely low or modest ratings for LF suitability. Whereas, again the highly suitable areas for LF are the South East states (i.e., Kwale, Kilifi and Lamu).
+</p>
+<p></br></p>
+<p>The rating approach is much better because you can see the intensity for LF suitability. Both approaches highly accessible especially for data and public health program managers in sub-Saharan Africa. These kinds of maps are particularly useful to optimize resources (especially within a low-resource setting) for identifying high-risk areas through knowledge-driven approach (and averting to survey potential unsuitable areas to not wasting limited resources).</p>
+<p>This approach is great for descriptive knowledge-based decision analysis; however, it does not take into account the factor that certain variables have more importance than others. For instance, <code>precipitation</code> is significantly more important than <code>NDVI</code> because elevated levels of rainfall has a positive impact on a mosquitoes’ survival lifespan and it provides an reservoir for female mosquitoes to breed in standing water. Higher rainfall within a densely populated environment provides not only a breeding ground, but a location closer to their food source (i.e., human and animal blood). Thus, <code>population density</code> is important an factor above <code>NDVI</code> but not as important as <code>precipitation</code> (i.e., high importance: <code>precipitation</code> &gt; <code>population density</code> &gt; <code>NDVI</code> :less importance).</p>
+<p>We can take this into account by applying weights for each variable determined by importance for the MCDA process - this approach is referred to as the Saaty’s Analytical Hierarchy Process (AHP). Let us see how we apply this methodology.</p>
+<p><strong>&gt;&gt; Proceed to the next section &gt;&gt;</strong></p>
+<hr style="border:2px solid gray">
+</hr>
+</div>
 
 
 
